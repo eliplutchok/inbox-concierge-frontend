@@ -1,0 +1,54 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.userEmail {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.signOutBtn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 6px 16px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  transition: background 0.15s;
+}
+
+.signOutBtn:hover {
+  background: var(--hover);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
