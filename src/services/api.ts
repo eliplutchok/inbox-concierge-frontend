@@ -1,3 +1,5 @@
+import type { Category, CategoryUpdate, EmailsResponse, User } from "../types";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 let authToken: string | null = null;
@@ -6,9 +8,6 @@ export function setAuthToken(token: string | null) {
   authToken = token;
 }
 
-export function getAuthToken(): string | null {
-  return authToken;
-}
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
@@ -36,25 +35,20 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 export const api = {
   getLoginUrl: () => `${API_URL}/api/auth/login`,
 
-  getMe: () => request<{ id: string; email: string; name: string | null }>("/api/auth/me"),
+  getMe: () => request<User>("/api/auth/me"),
 
-  getEmails: () =>
-    request<{
-      emails: import("../types").EmailThread[];
-      classified_count: number;
-      total_count: number;
-    }>("/api/emails"),
+  getEmails: () => request<EmailsResponse>("/api/emails"),
 
-  getCategories: () => request<import("../types").Category[]>("/api/categories"),
+  getCategories: () => request<Category[]>("/api/categories"),
 
-  updateCategories: (categories: import("../types").CategoryUpdate[]) =>
-    request<import("../types").Category[]>("/api/categories", {
+  updateCategories: (categories: CategoryUpdate[]) =>
+    request<Category[]>("/api/categories", {
       method: "PUT",
       body: JSON.stringify({ categories }),
     }),
 
   resetCategories: () =>
-    request<import("../types").Category[]>("/api/categories/reset", {
+    request<Category[]>("/api/categories/reset", {
       method: "POST",
     }),
 

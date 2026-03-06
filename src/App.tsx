@@ -8,11 +8,12 @@ import { useAuth } from "./context/AuthContext";
 import { useEmails } from "./context/EmailContext";
 
 function InboxView() {
-  const { fetchEmails, moveEmail } = useEmails();
+  const { fetchEmails, fetchCategories, moveEmail } = useEmails();
 
   useEffect(() => {
+    fetchCategories();
     fetchEmails();
-  }, [fetchEmails]);
+  }, [fetchCategories, fetchEmails]);
 
   const handleDragEnd = useCallback(
     (event: any) => {

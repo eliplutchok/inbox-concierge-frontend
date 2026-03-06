@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useEmails } from "../../context/EmailContext";
-import type { Category } from "../../types";
+import type { CategoryUpdate } from "../../types";
 import styles from "./CategoryModal.module.css";
 
 interface CategoryModalProps {
@@ -47,13 +47,12 @@ export default function CategoryModal({ onClose }: CategoryModalProps) {
   const handleSave = useCallback(async () => {
     const valid = items.filter((i) => i.name.trim());
     if (valid.length === 0) return;
-    const success = await updateCategories(
-      valid.map((i) => ({
-        id: i.id || "",
-        name: i.name.trim(),
-        description: i.description.trim() || null,
-      })) as Category[]
-    );
+    const mapped: CategoryUpdate[] = valid.map((i) => ({
+      id: i.id,
+      name: i.name.trim(),
+      description: i.description.trim() || null,
+    }));
+    const success = await updateCategories(mapped);
     if (success) onClose();
   }, [items, updateCategories, onClose]);
 
