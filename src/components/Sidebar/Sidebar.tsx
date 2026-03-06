@@ -21,7 +21,7 @@ export default function Sidebar() {
     return counts;
   }, [categories, emails]);
 
-  const handleCategoryClick = (catId: string) => {
+  const handleCategoryClick = (catId: string | null) => {
     setActiveCategory(catId);
     setSidebarOpen(false);
   };
@@ -30,6 +30,13 @@ export default function Sidebar() {
     <>
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ""}`}>
         <div className={styles.tabs}>
+          <div
+            className={`${styles.allTab} ${activeCategory === null ? styles.allTabActive : ""}`}
+            onClick={() => handleCategoryClick(null)}
+          >
+            <span className={styles.allTabName}>All</span>
+            <span className={styles.allTabCount}>{emails.length}</span>
+          </div>
           {categories.map((cat) => (
             <CategoryTab
               key={cat.id}

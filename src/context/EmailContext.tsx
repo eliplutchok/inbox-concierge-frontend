@@ -42,8 +42,9 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       const cats = await api.getCategories();
       setCategories(cats);
       setActiveCategory((prev) => {
-        if (prev && cats.some((c) => c.id === prev)) return prev;
-        return cats.length > 0 ? cats[0].id : null;
+        if (prev === null) return null;
+        if (cats.some((c) => c.id === prev)) return prev;
+        return null;
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch categories");
@@ -108,8 +109,9 @@ export function EmailProvider({ children }: { children: ReactNode }) {
         const result = await api.updateCategories(updatedCats);
         setCategories(result);
         setActiveCategory((prev) => {
-          if (prev && result.some((c) => c.id === prev)) return prev;
-          return result.length > 0 ? result[0].id : null;
+          if (prev === null) return null;
+          if (result.some((c) => c.id === prev)) return prev;
+          return null;
         });
         refreshEmailsAfterDelay();
         return true;

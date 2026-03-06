@@ -7,6 +7,7 @@ import styles from "./EmailItem.module.css";
 
 interface EmailItemProps {
   email: EmailThread;
+  showCategory?: boolean;
 }
 
 function formatSender(sender: string | null): string {
@@ -27,7 +28,7 @@ function formatDate(dateStr: string | null): string {
 const NEW_THRESHOLD_MS = 30_000;
 const NEW_FADE_DELAY_MS = 3_000;
 
-export default function EmailItem({ email }: EmailItemProps) {
+export default function EmailItem({ email, showCategory }: EmailItemProps) {
   const { categories, moveEmail } = useEmails();
   const [menuOpen, setMenuOpen] = useState(false);
   const { ref, isDragging } = useDraggable({
@@ -80,6 +81,9 @@ export default function EmailItem({ email }: EmailItemProps) {
               </span>
             )}
           </span>
+          {showCategory && email.category_name && (
+            <span className={styles.categoryPill}>{email.category_name}</span>
+          )}
           <span className={styles.subject}>{email.subject || "(no subject)"}</span>
           <span className={styles.date}>{formatDate(email.date)}</span>
         </div>

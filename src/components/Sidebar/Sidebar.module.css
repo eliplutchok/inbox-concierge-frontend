@@ -17,6 +17,38 @@
   padding: 0 8px;
 }
 
+.allTab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+  margin-bottom: 4px;
+}
+
+.allTab:hover {
+  background: var(--hover);
+}
+
+.allTabActive {
+  background: var(--active-tab);
+  font-weight: 500;
+}
+
+.allTabName {
+  font-size: 14px;
+}
+
+.allTabCount {
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
 .footer {
   padding: 8px 12px;
   border-top: 1px solid var(--border);

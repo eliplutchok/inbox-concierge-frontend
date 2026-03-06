@@ -23,9 +23,11 @@ export default function EmailList() {
   const { emails, activeCategory, loading, error, clearError } = useEmails();
   const tip = useTipBanner();
 
+  const showAll = activeCategory === null;
+
   const filteredEmails = useMemo(
-    () => emails.filter((e) => e.category_id === activeCategory),
-    [emails, activeCategory]
+    () => showAll ? emails : emails.filter((e) => e.category_id === activeCategory),
+    [emails, activeCategory, showAll]
   );
 
   if (error) {
@@ -64,7 +66,7 @@ export default function EmailList() {
         </div>
       )}
       {filteredEmails.map((email) => (
-        <EmailItem key={email.id} email={email} />
+        <EmailItem key={email.id} email={email} showCategory={showAll} />
       ))}
     </div>
   );
