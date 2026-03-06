@@ -76,9 +76,6 @@
   opacity: 0;
 }
 
-.corrected {
-  border-left: 3px solid var(--text-secondary);
-}
 
 /* ---- Actions (absolutely positioned, appear on hover) ---- */
 

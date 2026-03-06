@@ -39,3 +39,31 @@
 .dismissBtn:hover {
   background: rgba(197, 34, 31, 0.08);
 }
+
+.tipBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--text-primary);
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.tipDismiss {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  color: #ffffff;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.tipDismiss:hover {
+  background: rgba(255, 255, 255, 0.1);
+}

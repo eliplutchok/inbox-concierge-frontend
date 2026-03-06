@@ -1,11 +1,27 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useEmails } from "../../context/EmailContext";
 import Loader from "../Loader/Loader";
 import EmailItem from "./EmailItem";
 import styles from "./EmailList.module.css";
 
+const TIP_DISMISSED_KEY = "inbox-concierge-tip-dismissed";
+
+function useTipBanner() {
+  const [dismissed, setDismissed] = useState(
+    () => localStorage.getItem(TIP_DISMISSED_KEY) === "1"
+  );
+
+  const dismiss = useCallback(() => {
+    localStorage.setItem(TIP_DISMISSED_KEY, "1");
+    setDismissed(true);
+  }, []);
+
+  return { show: !dismissed, dismiss };
+}
+
 export default function EmailList() {
   const { emails, activeCategory, loading, error, clearError } = useEmails();
+  const tip = useTipBanner();
 
   const filteredEmails = useMemo(
     () => emails.filter((e) => e.category_id === activeCategory),
@@ -41,6 +57,12 @@ export default function EmailList() {
 
   return (
     <div className={styles.container}>
+      {tip.show && (
+        <div className={styles.tipBanner}>
+          <span>Hi! Drag emails to a category or use the reclassify icon to move them. Each correction teaches the AI your preferences, so classifications get smarter over time.</span>
+          <button onClick={tip.dismiss} className={styles.tipDismiss}>Got it</button>
+        </div>
+      )}
       {filteredEmails.map((email) => (
         <EmailItem key={email.id} email={email} />
       ))}

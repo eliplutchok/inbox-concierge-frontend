@@ -51,7 +51,7 @@ export default function EmailItem({ email }: EmailItemProps) {
   return (
     <div
       ref={ref}
-      className={`${styles.item} ${isDragging ? styles.dragging : ""} ${email.is_user_corrected ? styles.corrected : ""} ${menuOpen ? styles.menuActive : ""}`}
+      className={`${styles.item} ${isDragging ? styles.dragging : ""} ${menuOpen ? styles.menuActive : ""}`}
       onClick={handleRowClick}
     >
       <div className={styles.content}>
