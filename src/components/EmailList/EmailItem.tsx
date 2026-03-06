@@ -27,7 +27,6 @@ export default function EmailItem({ email }: EmailItemProps) {
     id: email.id,
     data: {
       emailId: email.id,
-      classificationId: email.classification_id,
       currentCategoryId: email.category_id,
     },
   });

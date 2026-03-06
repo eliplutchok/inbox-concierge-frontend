@@ -24,12 +24,12 @@ function InboxView() {
       if (!source || !target) return;
 
       const emailData = source.data;
-      if (!emailData?.classificationId) return;
+      if (!emailData?.emailId) return;
 
       const newCategoryId = target.id as string;
       if (newCategoryId === emailData.currentCategoryId) return;
 
-      moveEmail(emailData.emailId, emailData.classificationId, newCategoryId);
+      moveEmail(emailData.emailId, newCategoryId);
     },
     [moveEmail]
   );

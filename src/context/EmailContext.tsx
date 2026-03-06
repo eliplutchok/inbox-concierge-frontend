@@ -18,7 +18,7 @@ interface EmailContextValue {
   clearError: () => void;
   fetchEmails: () => Promise<void>;
   fetchCategories: () => Promise<void>;
-  moveEmail: (emailId: string, classificationId: string, newCategoryId: string) => Promise<void>;
+  moveEmail: (emailId: string, newCategoryId: string) => Promise<void>;
   updateCategories: (categories: CategoryUpdate[]) => Promise<boolean>;
   resetCategories: () => Promise<boolean>;
 }
@@ -61,7 +61,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const moveEmail = useCallback(
-    async (emailId: string, classificationId: string, newCategoryId: string) => {
+    async (emailId: string, newCategoryId: string) => {
       const newCategory = categories.find((c) => c.id === newCategoryId);
       if (!newCategory) return;
 
@@ -76,7 +76,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       );
 
       try {
-        await api.updateClassification(classificationId, newCategoryId);
+        await api.updateEmailCategory(emailId, newCategoryId);
       } catch {
         setEmails(previousEmails);
         setError("Failed to move email. Please try again.");

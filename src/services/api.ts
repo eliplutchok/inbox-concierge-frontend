@@ -52,8 +52,8 @@ export const api = {
       method: "POST",
     }),
 
-  updateClassification: (classificationId: string, categoryId: string) =>
-    request<{ status: string }>(`/api/classifications/${classificationId}`, {
+  updateEmailCategory: (emailId: string, categoryId: string) =>
+    request<{ status: string }>(`/api/emails/${emailId}/category`, {
       method: "PATCH",
       body: JSON.stringify({ category_id: categoryId }),
     }),
