@@ -21,6 +21,7 @@ export interface EmailThread {
   category_id: string | null;
   category_name: string | null;
   is_user_corrected: boolean;
+  classified_at: string | null;
 }
 
 export interface EmailsResponse {

@@ -1,6 +1,6 @@
 import { useDraggable } from "@dnd-kit/react";
 import { format, parseISO } from "date-fns";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useEmails } from "../../context/EmailContext";
 import type { EmailThread } from "../../types";
 import styles from "./EmailItem.module.css";
@@ -24,6 +24,9 @@ function formatDate(dateStr: string | null): string {
   }
 }
 
+const NEW_THRESHOLD_MS = 30_000;
+const NEW_FADE_DELAY_MS = 3_000;
+
 export default function EmailItem({ email }: EmailItemProps) {
   const { categories, moveEmail } = useEmails();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -34,6 +37,19 @@ export default function EmailItem({ email }: EmailItemProps) {
       currentCategoryId: email.category_id,
     },
   });
+
+  const isNew = useMemo(() => {
+    if (!email.classified_at) return false;
+    return Date.now() - new Date(email.classified_at).getTime() < NEW_THRESHOLD_MS;
+  }, [email.classified_at]);
+
+  const [showNew, setShowNew] = useState(isNew);
+
+  useEffect(() => {
+    if (!showNew) return;
+    const timer = setTimeout(() => setShowNew(false), NEW_FADE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [showNew]);
 
   const handleRowClick = () => {
     if (email.gmail_link) {
@@ -57,6 +73,13 @@ export default function EmailItem({ email }: EmailItemProps) {
       <div className={styles.content}>
         <div className={styles.topRow}>
           <span className={styles.sender}>{formatSender(email.sender)}</span>
+          <span className={styles.badgeSlot}>
+            {isNew && (
+              <span className={`${styles.newBadge} ${showNew ? "" : styles.newBadgeFaded}`}>
+                New
+              </span>
+            )}
+          </span>
           <span className={styles.subject}>{email.subject || "(no subject)"}</span>
           <span className={styles.date}>{formatDate(email.date)}</span>
         </div>

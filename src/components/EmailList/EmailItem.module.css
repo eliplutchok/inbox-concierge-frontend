@@ -32,16 +32,47 @@
 }
 
 .sender {
+  width: 180px;
+  min-width: 180px;
   font-weight: 500;
   font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 220px;
   flex-shrink: 0;
 }
 
+.badgeSlot {
+  width: 36px;
+  min-width: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.newBadge {
+  display: inline-block;
+  background: rgb(69, 69, 69);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 1s ease;
+}
+
+.newBadgeFaded {
+  opacity: 0;
+}
+
 .subject {
+  flex: 1;
+  min-width: 0;
   font-size: 14px;
   color: var(--text-primary);
   white-space: nowrap;
@@ -52,6 +83,7 @@
 .bottomRow {
   display: flex;
   align-items: baseline;
+  padding-left: 224px;
 }
 
 .snippet {
@@ -75,7 +107,6 @@
 .item:hover .date {
   opacity: 0;
 }
-
 
 /* ---- Actions (absolutely positioned, appear on hover) ---- */
 
@@ -198,17 +229,25 @@
 
   .sender {
     order: 1;
-    font-size: 13px;
+    width: auto;
+    min-width: 0;
     max-width: none;
     flex: 1;
-    min-width: 0;
+    font-size: 13px;
+  }
+
+  .badgeSlot {
+    order: 2;
+    width: auto;
+    min-width: auto;
+    margin-left: 6px;
   }
 
   .date {
-    order: 2;
+    order: 3;
     font-size: 12px;
     padding-left: 8px;
-    margin-left: 0;
+    margin-left: auto;
   }
 
   .item:hover .date {
@@ -216,7 +255,7 @@
   }
 
   .subject {
-    order: 3;
+    order: 4;
     font-size: 12px;
     color: var(--text-secondary);
     flex-basis: 100%;
