@@ -57,4 +57,12 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ category_id: categoryId }),
     }),
+
+  getNotes: () => request<{ notes: string | null }>("/api/categories/notes"),
+
+  updateNotes: (notes: string | null) =>
+    request<{ notes: string | null }>("/api/categories/notes", {
+      method: "PUT",
+      body: JSON.stringify({ notes }),
+    }),
 };

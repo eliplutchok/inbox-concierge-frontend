@@ -143,7 +143,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
     try {
       const result = await api.resetCategories();
       setCategories(result);
-      setActiveCategory(result.length > 0 ? result[0].id : null);
+      setActiveCategory(null);
       refreshEmailsAfterDelay();
       return true;
     } catch (err) {
