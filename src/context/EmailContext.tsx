@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useState,
   type ReactNode,
 } from "react";
@@ -27,13 +28,25 @@ interface EmailContextValue {
 
 const EmailContext = createContext<EmailContextValue | null>(null);
 
+const ACTIVE_CAT_KEY = "inbox-concierge-active-category";
+
 export function EmailProvider({ children }: { children: ReactNode }) {
   const [emails, setEmails] = useState<EmailThread[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(
+    () => localStorage.getItem(ACTIVE_CAT_KEY) || null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (activeCategory) {
+      localStorage.setItem(ACTIVE_CAT_KEY, activeCategory);
+    } else {
+      localStorage.removeItem(ACTIVE_CAT_KEY);
+    }
+  }, [activeCategory]);
 
   const clearError = useCallback(() => setError(null), []);
 
@@ -130,7 +143,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
     try {
       const result = await api.resetCategories();
       setCategories(result);
-      if (result.length > 0) setActiveCategory(result[0].id);
+      setActiveCategory(result.length > 0 ? result[0].id : null);
       refreshEmailsAfterDelay();
       return true;
     } catch (err) {
