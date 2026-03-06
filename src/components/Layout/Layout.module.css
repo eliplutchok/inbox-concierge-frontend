@@ -15,6 +15,37 @@
   z-index: 10;
 }
 
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menuBtn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.menuBtn:hover {
+  background: var(--hover);
+}
+
+.menuIcon {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--text-secondary);
+  border-radius: 1px;
+}
+
 .logo {
   font-size: 20px;
   font-weight: 500;
@@ -51,4 +82,31 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
+}
+
+.overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .menuBtn {
+    display: flex;
+  }
+
+  .userEmail {
+    display: none;
+  }
+
+  .logo {
+    font-size: 17px;
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 19;
+  }
 }

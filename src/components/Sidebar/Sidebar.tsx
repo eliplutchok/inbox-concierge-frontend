@@ -5,7 +5,7 @@ import CategoryTab from "./CategoryTab";
 import styles from "./Sidebar.module.css";
 
 export default function Sidebar() {
-  const { categories, emails, activeCategory, setActiveCategory } = useEmails();
+  const { categories, emails, activeCategory, setActiveCategory, sidebarOpen, setSidebarOpen } = useEmails();
   const [modalOpen, setModalOpen] = useState(false);
 
   const countsByCategory = useMemo(() => {
@@ -21,9 +21,14 @@ export default function Sidebar() {
     return counts;
   }, [categories, emails]);
 
+  const handleCategoryClick = (catId: string) => {
+    setActiveCategory(catId);
+    setSidebarOpen(false);
+  };
+
   return (
     <>
-      <aside className={styles.sidebar}>
+      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ""}`}>
         <div className={styles.tabs}>
           {categories.map((cat) => (
             <CategoryTab
@@ -32,7 +37,7 @@ export default function Sidebar() {
               name={cat.name}
               count={countsByCategory[cat.id] || 0}
               active={activeCategory === cat.id}
-              onClick={() => setActiveCategory(cat.id)}
+              onClick={() => handleCategoryClick(cat.id)}
             />
           ))}
         </div>

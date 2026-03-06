@@ -14,6 +14,8 @@ interface EmailContextValue {
   activeCategory: string | null;
   loading: boolean;
   error: string | null;
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
   setActiveCategory: (id: string | null) => void;
   clearError: () => void;
   fetchEmails: () => Promise<void>;
@@ -31,6 +33,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const clearError = useCallback(() => setError(null), []);
 
@@ -143,6 +146,8 @@ export function EmailProvider({ children }: { children: ReactNode }) {
         activeCategory,
         loading,
         error,
+        sidebarOpen,
+        setSidebarOpen,
         setActiveCategory,
         clearError,
         fetchEmails,
