@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useEmails } from "../../context/EmailContext";
+import Loader from "../Loader/Loader";
 import EmailItem from "./EmailItem";
 import styles from "./EmailList.module.css";
 
@@ -22,29 +23,10 @@ export default function EmailList() {
     );
   }
 
-  if (loading && emails.length === 0) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.skeleton}>
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className={styles.skeletonRow}>
-              <div className={styles.skeletonLine} />
-              <div className={styles.skeletonLine} />
-              <div className={styles.skeletonLine} />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loadingOverlay}>
-          <div className={styles.spinner} />
-          <span>Classifying emails...</span>
-        </div>
+        <Loader />
       </div>
     );
   }

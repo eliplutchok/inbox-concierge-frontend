@@ -3,6 +3,7 @@ import { useCallback, useEffect } from "react";
 import LoginButton from "./components/Auth/LoginButton";
 import EmailList from "./components/EmailList/EmailList";
 import Layout from "./components/Layout/Layout";
+import Loader from "./components/Loader/Loader";
 import Sidebar from "./components/Sidebar/Sidebar";
 import { useAuth } from "./context/AuthContext";
 import { useEmails } from "./context/EmailContext";
@@ -48,11 +49,7 @@ export default function App() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
-        <div style={{ color: "var(--text-secondary)" }}>Loading...</div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!user) {
