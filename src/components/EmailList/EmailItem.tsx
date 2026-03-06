@@ -84,12 +84,20 @@ export default function EmailItem({ email, showCategory }: EmailItemProps) {
           {showCategory && email.category_name && (
             <span className={styles.categoryPill}>{email.category_name}</span>
           )}
-          <span className={styles.subject}>{email.subject || "(no subject)"}</span>
+          <span className={styles.subjectLine}>
+            <span className={styles.subject}>{email.subject || "(no subject)"}</span>
+            {email.snippet && (
+              <>
+                <span className={styles.snippetDash}> — </span>
+                <span className={styles.snippet}>{email.snippet}</span>
+              </>
+            )}
+          </span>
           <span className={styles.date}>{formatDate(email.date)}</span>
         </div>
-        <div className={styles.bottomRow}>
-          <span className={styles.snippet}>{email.snippet}</span>
-        </div>
+        {email.snippet && (
+          <div className={styles.mobileSnippet}>{email.snippet}</div>
+        )}
       </div>
       <div className={styles.actions} onClick={(e) => e.stopPropagation()}>
         <div className={styles.reclassifyWrapper}>
