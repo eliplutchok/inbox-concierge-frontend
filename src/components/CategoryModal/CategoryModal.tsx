@@ -47,19 +47,19 @@ export default function CategoryModal({ onClose }: CategoryModalProps) {
   const handleSave = useCallback(async () => {
     const valid = items.filter((i) => i.name.trim());
     if (valid.length === 0) return;
-    await updateCategories(
+    const success = await updateCategories(
       valid.map((i) => ({
         id: i.id || "",
         name: i.name.trim(),
         description: i.description.trim() || null,
       })) as Category[]
     );
-    onClose();
+    if (success) onClose();
   }, [items, updateCategories, onClose]);
 
   const handleReset = useCallback(async () => {
-    await resetCategories();
-    onClose();
+    const success = await resetCategories();
+    if (success) onClose();
   }, [resetCategories, onClose]);
 
   const handleBackdropClick = useCallback(

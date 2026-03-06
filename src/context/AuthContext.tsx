@@ -24,19 +24,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    if (token) {
-      setAuthToken(token);
-      localStorage.setItem("token", token);
+    const tokenFromUrl = params.get("token");
+
+    if (tokenFromUrl) {
+      localStorage.setItem("token", tokenFromUrl);
       window.history.replaceState({}, "", window.location.pathname);
-    } else {
-      const stored = localStorage.getItem("token");
-      if (stored) setAuthToken(stored);
     }
 
-    const currentToken = token || localStorage.getItem("token");
-    if (currentToken) {
-      setAuthToken(currentToken);
+    const token = tokenFromUrl || localStorage.getItem("token");
+
+    if (token) {
+      setAuthToken(token);
       api
         .getMe()
         .then(setUser)

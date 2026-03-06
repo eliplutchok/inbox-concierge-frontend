@@ -4,12 +4,23 @@ import EmailItem from "./EmailItem";
 import styles from "./EmailList.module.css";
 
 export default function EmailList() {
-  const { emails, activeCategory, loading } = useEmails();
+  const { emails, activeCategory, loading, error, clearError } = useEmails();
 
   const filteredEmails = useMemo(
     () => emails.filter((e) => e.category_id === activeCategory),
     [emails, activeCategory]
   );
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.errorBanner}>
+          <span>{error}</span>
+          <button onClick={clearError} className={styles.dismissBtn}>Dismiss</button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading && emails.length === 0) {
     return (

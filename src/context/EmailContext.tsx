@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -15,11 +16,12 @@ interface EmailContextValue {
   loading: boolean;
   error: string | null;
   setActiveCategory: (id: string | null) => void;
+  clearError: () => void;
   fetchEmails: () => Promise<void>;
   fetchCategories: () => Promise<void>;
   moveEmail: (emailId: string, classificationId: string, newCategoryId: string) => Promise<void>;
-  updateCategories: (categories: Category[]) => Promise<void>;
-  resetCategories: () => Promise<void>;
+  updateCategories: (categories: Category[]) => Promise<boolean>;
+  resetCategories: () => Promise<boolean>;
 }
 
 const EmailContext = createContext<EmailContextValue | null>(null);
@@ -30,18 +32,23 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const activeCategoryRef = useRef(activeCategory);
+  activeCategoryRef.current = activeCategory;
+
+  const clearError = useCallback(() => setError(null), []);
 
   const fetchCategories = useCallback(async () => {
     try {
       const cats = await api.getCategories();
       setCategories(cats);
-      if (!activeCategory && cats.length > 0) {
-        setActiveCategory(cats[0].id);
-      }
+      setActiveCategory((prev) => {
+        if (prev && cats.some((c) => c.id === prev)) return prev;
+        return cats.length > 0 ? cats[0].id : null;
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch categories");
     }
-  }, [activeCategory]);
+  }, []);
 
   const fetchEmails = useCallback(async () => {
     setLoading(true);
@@ -49,25 +56,21 @@ export function EmailProvider({ children }: { children: ReactNode }) {
     try {
       const [emailsRes] = await Promise.all([api.getEmails(), fetchCategories()]);
       setEmails(emailsRes.emails);
-      // Ensure we also have up-to-date categories
-      const cats = await api.getCategories();
-      setCategories(cats);
-      if (!activeCategory && cats.length > 0) {
-        setActiveCategory(cats[0].id);
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch emails");
     } finally {
       setLoading(false);
     }
-  }, [activeCategory, fetchCategories]);
+  }, [fetchCategories]);
 
   const moveEmail = useCallback(
     async (emailId: string, classificationId: string, newCategoryId: string) => {
       const newCategory = categories.find((c) => c.id === newCategoryId);
       if (!newCategory) return;
 
-      // Optimistic update
+      // Capture previous state for rollback
+      const previousEmails = emails;
+
       setEmails((prev) =>
         prev.map((e) =>
           e.id === emailId
@@ -79,16 +82,17 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       try {
         await api.updateClassification(classificationId, newCategoryId);
       } catch {
-        // Revert on failure
-        await fetchEmails();
+        setEmails(previousEmails);
+        setError("Failed to move email. Please try again.");
       }
     },
-    [categories, fetchEmails]
+    [categories, emails]
   );
 
   const updateCategories = useCallback(
-    async (updatedCats: Category[]) => {
+    async (updatedCats: Category[]): Promise<boolean> => {
       setLoading(true);
+      setError(null);
       try {
         const result = await api.updateCategories(
           updatedCats.map((c) => ({
@@ -98,33 +102,40 @@ export function EmailProvider({ children }: { children: ReactNode }) {
           }))
         );
         setCategories(result);
-        if (result.length > 0 && !result.find((c) => c.id === activeCategory)) {
-          setActiveCategory(result[0].id);
-        }
-        // Reclassification happens in background — refetch emails after a delay
+        setActiveCategory((prev) => {
+          if (prev && result.some((c) => c.id === prev)) return prev;
+          return result.length > 0 ? result[0].id : null;
+        });
+
+        // Poll for reclassification to complete
         setTimeout(async () => {
           try {
             const emailsRes = await api.getEmails();
             setEmails(emailsRes.emails);
           } catch {
-            // silent
+            // silent — emails will refresh on next interaction
           }
           setLoading(false);
-        }, 2000);
+        }, 3000);
+
+        return true;
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to update categories");
         setLoading(false);
+        return false;
       }
     },
-    [activeCategory]
+    []
   );
 
-  const resetCategories = useCallback(async () => {
+  const resetCategories = useCallback(async (): Promise<boolean> => {
     setLoading(true);
+    setError(null);
     try {
       const result = await api.resetCategories();
       setCategories(result);
       if (result.length > 0) setActiveCategory(result[0].id);
+
       setTimeout(async () => {
         try {
           const emailsRes = await api.getEmails();
@@ -133,10 +144,13 @@ export function EmailProvider({ children }: { children: ReactNode }) {
           // silent
         }
         setLoading(false);
-      }, 2000);
+      }, 3000);
+
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to reset categories");
       setLoading(false);
+      return false;
     }
   }, []);
 
@@ -149,6 +163,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
         loading,
         error,
         setActiveCategory,
+        clearError,
         fetchEmails,
         fetchCategories,
         moveEmail,

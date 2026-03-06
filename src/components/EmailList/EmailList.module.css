@@ -74,3 +74,30 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  margin: 16px;
+  background: #fce8e6;
+  color: #c5221f;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.dismissBtn {
+  background: none;
+  border: 1px solid #c5221f;
+  border-radius: var(--radius-sm);
+  padding: 4px 12px;
+  color: #c5221f;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.dismissBtn:hover {
+  background: rgba(197, 34, 31, 0.08);
+}
