@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useEmails } from "../../context/EmailContext";
+import Toast from "../Toast/Toast";
 import styles from "./Layout.module.css";
 
 interface LayoutProps {
@@ -62,6 +63,7 @@ export default function Layout({ children }: LayoutProps) {
         )}
         {children}
       </div>
+      <Toast />
     </div>
   );
 }

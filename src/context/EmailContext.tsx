@@ -15,12 +15,14 @@ interface EmailContextValue {
   categories: Category[];
   activeCategory: string | null;
   searchQuery: string;
+  toast: string | null;
   loading: boolean;
   error: string | null;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
   setActiveCategory: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
+  dismissToast: () => void;
   clearError: () => void;
   fetchEmails: () => Promise<void>;
   fetchCategories: () => Promise<void>;
@@ -42,15 +44,28 @@ export function EmailProvider({ children }: { children: ReactNode }) {
     return stored;
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [toast, setToast] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const isFirstLoad = useRef(!localStorage.getItem(ACTIVE_CAT_KEY));
 
   useEffect(() => {
     localStorage.setItem(ACTIVE_CAT_KEY, activeCategory ?? "all");
   }, [activeCategory]);
+
+  const showToast = useCallback((message: string) => {
+    clearTimeout(toastTimer.current);
+    setToast(message);
+    toastTimer.current = setTimeout(() => setToast(null), 4000);
+  }, []);
+
+  const dismissToast = useCallback(() => {
+    clearTimeout(toastTimer.current);
+    setToast(null);
+  }, []);
 
   const clearError = useCallback(() => setError(null), []);
 
@@ -103,12 +118,13 @@ export function EmailProvider({ children }: { children: ReactNode }) {
 
       try {
         await api.updateEmailCategory(emailId, newCategoryId);
+        showToast("Feedback received — your preferences will be updated.");
       } catch {
         setEmails(previousEmails);
         setError("Failed to move email. Please try again.");
       }
     },
-    [categories, emails]
+    [categories, emails, showToast]
   );
 
   const refreshEmailsAfterDelay = useCallback(() => {
@@ -165,12 +181,14 @@ export function EmailProvider({ children }: { children: ReactNode }) {
         categories,
         activeCategory,
         searchQuery,
+        toast,
         loading,
         error,
         sidebarOpen,
         setSidebarOpen,
         setActiveCategory,
         setSearchQuery,
+        dismissToast,
         clearError,
         fetchEmails,
         fetchCategories,
