@@ -26,6 +26,8 @@ export interface EmailThread {
 
 export interface EmailsResponse {
   emails: EmailThread[];
+  classified_count: number;
+  total_count: number;
 }
 
 export interface CategoryUpdate {

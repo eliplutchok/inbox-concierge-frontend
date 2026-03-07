@@ -20,15 +20,25 @@ function useTipBanner() {
 }
 
 export default function EmailList() {
-  const { emails, activeCategory, loading, error, clearError } = useEmails();
+  const { emails, activeCategory, searchQuery, loading, error, clearError } = useEmails();
   const tip = useTipBanner();
 
   const showAll = activeCategory === null;
 
-  const filteredEmails = useMemo(
-    () => showAll ? emails : emails.filter((e) => e.category_id === activeCategory),
-    [emails, activeCategory, showAll]
-  );
+  const filteredEmails = useMemo(() => {
+    let result = showAll ? emails : emails.filter((e) => e.category_id === activeCategory);
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (e) =>
+          e.subject?.toLowerCase().includes(q) ||
+          e.sender?.toLowerCase().includes(q)
+      );
+    }
+
+    return result;
+  }, [emails, activeCategory, showAll, searchQuery]);
 
   if (error) {
     return (

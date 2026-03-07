@@ -1,5 +1,5 @@
 import { DragDropProvider } from "@dnd-kit/react";
-import { useCallback, useEffect } from "react";
+import { type ComponentProps, useCallback, useEffect } from "react";
 import LoginButton from "./components/Auth/LoginButton";
 import EmailList from "./components/EmailList/EmailList";
 import Layout from "./components/Layout/Layout";
@@ -7,6 +7,8 @@ import Loader from "./components/Loader/Loader";
 import Sidebar from "./components/Sidebar/Sidebar";
 import { useAuth } from "./context/AuthContext";
 import { useEmails } from "./context/EmailContext";
+
+type DragEndHandler = NonNullable<ComponentProps<typeof DragDropProvider>["onDragEnd"]>;
 
 function InboxView() {
   const { fetchEmails, fetchCategories, moveEmail } = useEmails();
@@ -16,8 +18,8 @@ function InboxView() {
     fetchEmails();
   }, [fetchCategories, fetchEmails]);
 
-  const handleDragEnd = useCallback(
-    (event: any) => {
+  const handleDragEnd: DragEndHandler = useCallback(
+    (event) => {
       const { operation } = event;
       if (!operation) return;
 

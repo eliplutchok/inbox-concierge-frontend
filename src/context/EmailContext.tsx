@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -13,11 +14,13 @@ interface EmailContextValue {
   emails: EmailThread[];
   categories: Category[];
   activeCategory: string | null;
+  searchQuery: string;
   loading: boolean;
   error: string | null;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
   setActiveCategory: (id: string | null) => void;
+  setSearchQuery: (query: string) => void;
   clearError: () => void;
   fetchEmails: () => Promise<void>;
   fetchCategories: () => Promise<void>;
@@ -33,36 +36,42 @@ const ACTIVE_CAT_KEY = "inbox-concierge-active-category";
 export function EmailProvider({ children }: { children: ReactNode }) {
   const [emails, setEmails] = useState<EmailThread[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string | null>(
-    () => localStorage.getItem(ACTIVE_CAT_KEY) || null
-  );
+  const [activeCategory, setActiveCategory] = useState<string | null>(() => {
+    const stored = localStorage.getItem(ACTIVE_CAT_KEY);
+    if (stored === "all") return null;
+    return stored;
+  });
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const isFirstLoad = useRef(!localStorage.getItem(ACTIVE_CAT_KEY));
+
   useEffect(() => {
-    if (activeCategory) {
-      localStorage.setItem(ACTIVE_CAT_KEY, activeCategory);
-    } else {
-      localStorage.removeItem(ACTIVE_CAT_KEY);
-    }
+    localStorage.setItem(ACTIVE_CAT_KEY, activeCategory ?? "all");
   }, [activeCategory]);
 
   const clearError = useCallback(() => setError(null), []);
+
+  const syncActiveCategory = useCallback((newCats: Category[]) => {
+    setActiveCategory((prev) => {
+      if (prev !== null && newCats.some((c) => c.id === prev)) return prev;
+      if (prev === null && !isFirstLoad.current) return null;
+      isFirstLoad.current = false;
+      return newCats[0]?.id ?? null;
+    });
+  }, []);
 
   const fetchCategories = useCallback(async () => {
     try {
       const cats = await api.getCategories();
       setCategories(cats);
-      setActiveCategory((prev) => {
-        if (prev === null) return null;
-        if (cats.some((c) => c.id === prev)) return prev;
-        return null;
-      });
+      syncActiveCategory(cats);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch categories");
     }
-  }, []);
+  }, [syncActiveCategory]);
 
   const fetchEmails = useCallback(async () => {
     setLoading(true);
@@ -121,11 +130,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       try {
         const result = await api.updateCategories(updatedCats);
         setCategories(result);
-        setActiveCategory((prev) => {
-          if (prev === null) return null;
-          if (result.some((c) => c.id === prev)) return prev;
-          return null;
-        });
+        syncActiveCategory(result);
         refreshEmailsAfterDelay();
         return true;
       } catch (err) {
@@ -134,7 +139,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [refreshEmailsAfterDelay]
+    [syncActiveCategory, refreshEmailsAfterDelay]
   );
 
   const resetCategories = useCallback(async (): Promise<boolean> => {
@@ -143,7 +148,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
     try {
       const result = await api.resetCategories();
       setCategories(result);
-      setActiveCategory(null);
+      syncActiveCategory(result);
       refreshEmailsAfterDelay();
       return true;
     } catch (err) {
@@ -151,7 +156,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return false;
     }
-  }, [refreshEmailsAfterDelay]);
+  }, [syncActiveCategory, refreshEmailsAfterDelay]);
 
   return (
     <EmailContext.Provider
@@ -159,11 +164,13 @@ export function EmailProvider({ children }: { children: ReactNode }) {
         emails,
         categories,
         activeCategory,
+        searchQuery,
         loading,
         error,
         sidebarOpen,
         setSidebarOpen,
         setActiveCategory,
+        setSearchQuery,
         clearError,
         fetchEmails,
         fetchCategories,

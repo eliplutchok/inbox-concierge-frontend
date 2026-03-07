@@ -8,7 +8,6 @@ export function setAuthToken(token: string | null) {
   authToken = token;
 }
 
-
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),

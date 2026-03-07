@@ -30,13 +30,6 @@ export default function Sidebar() {
     <>
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ""}`}>
         <div className={styles.tabs}>
-          <div
-            className={`${styles.allTab} ${activeCategory === null ? styles.allTabActive : ""}`}
-            onClick={() => handleCategoryClick(null)}
-          >
-            <span className={styles.allTabName}>All</span>
-            <span className={styles.allTabCount}>{emails.length}</span>
-          </div>
           {categories.map((cat) => (
             <CategoryTab
               key={cat.id}
@@ -47,6 +40,13 @@ export default function Sidebar() {
               onClick={() => handleCategoryClick(cat.id)}
             />
           ))}
+          <div
+            className={`${styles.allTab} ${activeCategory === null ? styles.allTabActive : ""}`}
+            onClick={() => handleCategoryClick(null)}
+          >
+            <span className={styles.allTabName}>All</span>
+            <span className={styles.allTabCount}>{emails.length}</span>
+          </div>
         </div>
         <div className={styles.footer}>
           <button className={styles.manageBtn} onClick={() => setModalOpen(true)}>
