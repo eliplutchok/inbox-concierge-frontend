@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../services/api";
 import { useEmails } from "../../context/EmailContext";
 import type { CategoryUpdate } from "../../types";
@@ -24,12 +24,34 @@ export default function CategoryModal({ onClose }: CategoryModalProps) {
   const [notes, setNotes] = useState("");
   const [notesLoading, setNotesLoading] = useState(true);
 
+  const initialItemsRef = useRef(
+    categories.map((c) => ({ id: c.id, name: c.name, description: c.description || "" }))
+  );
+  const initialNotesRef = useRef<string>("");
+
   useEffect(() => {
     api.getNotes().then((res) => {
-      setNotes(res.notes || "");
+      const loaded = res.notes || "";
+      setNotes(loaded);
+      initialNotesRef.current = loaded;
       setNotesLoading(false);
     }).catch(() => setNotesLoading(false));
   }, []);
+
+  const hasChanges = useMemo(() => {
+    const initial = initialItemsRef.current;
+    if (items.length !== initial.length) return true;
+    for (let i = 0; i < items.length; i++) {
+      if (
+        items[i].id !== initial[i].id ||
+        items[i].name !== initial[i].name ||
+        items[i].description !== initial[i].description
+      )
+        return true;
+    }
+    if (notes !== initialNotesRef.current) return true;
+    return false;
+  }, [items, notes]);
 
   const handleDelete = useCallback((index: number) => {
     setItems((prev) => prev.filter((_, i) => i !== index));
@@ -46,7 +68,7 @@ export default function CategoryModal({ onClose }: CategoryModalProps) {
     setNewDesc("");
   }, [newName, newDesc]);
 
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async (reclassify: boolean) => {
     const valid = items.filter((i) => i.name.trim());
     if (valid.length === 0) return;
     const mapped: CategoryUpdate[] = valid.map((i) => ({
@@ -58,7 +80,7 @@ export default function CategoryModal({ onClose }: CategoryModalProps) {
     const trimmedNotes = notes.trim() || null;
     await api.updateNotes(trimmedNotes);
 
-    const success = await updateCategories(mapped);
+    const success = await updateCategories(mapped, reclassify);
     if (success) onClose();
   }, [items, notes, updateCategories, onClose]);
 
@@ -165,8 +187,19 @@ export default function CategoryModal({ onClose }: CategoryModalProps) {
             <button className={styles.cancelBtn} onClick={onClose}>
               Cancel
             </button>
-            <button className={styles.saveBtn} onClick={handleSave}>
+            <button
+              className={styles.saveBtn}
+              onClick={() => handleSave(false)}
+              disabled={!hasChanges}
+            >
               Save
+            </button>
+            <button
+              className={styles.reclassifyBtn}
+              onClick={() => handleSave(true)}
+              disabled={!hasChanges}
+            >
+              Save &amp; Recategorize
             </button>
           </div>
         </div>

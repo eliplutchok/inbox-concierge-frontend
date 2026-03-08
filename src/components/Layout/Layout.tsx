@@ -10,7 +10,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth();
-  const { sidebarOpen, setSidebarOpen, searchQuery, setSearchQuery } = useEmails();
+  const { sidebarOpen, setSidebarOpen, searchQuery, setSearchQuery, reclassifyEmails, loading } = useEmails();
 
   return (
     <div className={styles.container}>
@@ -52,6 +52,17 @@ export default function Layout({ children }: LayoutProps) {
         </div>
         <div className={styles.userSection}>
           {user && <span className={styles.userEmail}>{user.email}</span>}
+          <button
+            className={styles.recategorizeBtn}
+            onClick={reclassifyEmails}
+            disabled={loading}
+            title="Re-run AI classification on all emails using your current categories and preference notes"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+            </svg>
+            <span>Recategorize</span>
+          </button>
           <button className={styles.signOutBtn} onClick={logout}>
             Sign out
           </button>

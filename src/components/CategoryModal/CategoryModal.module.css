@@ -221,8 +221,33 @@
   transition: opacity 0.15s;
 }
 
-.saveBtn:hover {
+.saveBtn:hover:not(:disabled) {
   opacity: 0.85;
+}
+
+.saveBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.reclassifyBtn {
+  background: none;
+  border: 1px solid var(--text-primary);
+  border-radius: var(--radius-lg);
+  padding: 6px 16px;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.reclassifyBtn:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.reclassifyBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 @media (max-width: 768px) {

@@ -27,8 +27,9 @@ interface EmailContextValue {
   fetchEmails: () => Promise<void>;
   fetchCategories: () => Promise<void>;
   moveEmail: (emailId: string, newCategoryId: string) => Promise<void>;
-  updateCategories: (categories: CategoryUpdate[]) => Promise<boolean>;
+  updateCategories: (categories: CategoryUpdate[], reclassify?: boolean) => Promise<boolean>;
   resetCategories: () => Promise<boolean>;
+  reclassifyEmails: () => Promise<void>;
 }
 
 const EmailContext = createContext<EmailContextValue | null>(null);
@@ -122,35 +123,40 @@ export function EmailProvider({ children }: { children: ReactNode }) {
     [categories, emails, showToast]
   );
 
-  const refreshEmailsAfterDelay = useCallback(() => {
-    setTimeout(async () => {
-      try {
-        const res = await api.getEmails();
-        setEmails(res.emails);
-      } catch {
-        // emails will refresh on next interaction
-      }
+  const reclassifyEmails = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.reclassifyEmails();
+      setEmails(res.emails);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to reclassify emails");
+    } finally {
       setLoading(false);
-    }, 3000);
+    }
   }, []);
 
   const updateCategories = useCallback(
-    async (updatedCats: CategoryUpdate[]): Promise<boolean> => {
+    async (updatedCats: CategoryUpdate[], reclassify = false): Promise<boolean> => {
       setLoading(true);
       setError(null);
       try {
         const result = await api.updateCategories(updatedCats);
         setCategories(result);
         syncActiveCategory(result);
-        refreshEmailsAfterDelay();
+        if (reclassify) {
+          const res = await api.reclassifyEmails();
+          setEmails(res.emails);
+        }
         return true;
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to update categories");
-        setLoading(false);
         return false;
+      } finally {
+        setLoading(false);
       }
     },
-    [syncActiveCategory, refreshEmailsAfterDelay]
+    [syncActiveCategory]
   );
 
   const resetCategories = useCallback(async (): Promise<boolean> => {
@@ -160,14 +166,16 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       const result = await api.resetCategories();
       setCategories(result);
       syncActiveCategory(result);
-      refreshEmailsAfterDelay();
+      const res = await api.reclassifyEmails();
+      setEmails(res.emails);
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to reset categories");
-      setLoading(false);
       return false;
+    } finally {
+      setLoading(false);
     }
-  }, [syncActiveCategory, refreshEmailsAfterDelay]);
+  }, [syncActiveCategory]);
 
   return (
     <EmailContext.Provider
@@ -190,6 +198,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
         moveEmail,
         updateCategories,
         resetCategories,
+        reclassifyEmails,
       }}
     >
       {children}

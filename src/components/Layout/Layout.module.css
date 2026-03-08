@@ -132,6 +132,29 @@
   font-size: 13px;
 }
 
+.recategorizeBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 6px 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.recategorizeBtn:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--text-primary);
+}
+
+.recategorizeBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .signOutBtn {
   background: none;
   border: 1px solid var(--border);
@@ -181,6 +204,14 @@
 
   .userEmail {
     display: none;
+  }
+
+  .recategorizeBtn span {
+    display: none;
+  }
+
+  .recategorizeBtn {
+    padding: 6px 8px;
   }
 
   .overlay {
