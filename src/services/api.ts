@@ -53,8 +53,8 @@ export const api = {
       method: "POST",
     }),
 
-  reclassifyEmails: () =>
-    request<EmailsResponse>("/api/emails/reclassify", { method: "POST" }),
+  reclassifyEmails: (adaptNotes = false) =>
+    request<EmailsResponse>(`/api/emails/reclassify?adapt_notes=${adaptNotes}`, { method: "POST" }),
 
   updateEmailCategory: (emailId: string, categoryId: string) =>
     request<{ status: string }>(`/api/emails/${emailId}/category`, {

@@ -145,7 +145,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
         setCategories(result);
         syncActiveCategory(result);
         if (reclassify) {
-          const res = await api.reclassifyEmails();
+          const res = await api.reclassifyEmails(true);
           setEmails(res.emails);
         }
         return true;
@@ -166,7 +166,7 @@ export function EmailProvider({ children }: { children: ReactNode }) {
       const result = await api.resetCategories();
       setCategories(result);
       syncActiveCategory(result);
-      const res = await api.reclassifyEmails();
+      const res = await api.reclassifyEmails(true);
       setEmails(res.emails);
       return true;
     } catch (err) {
