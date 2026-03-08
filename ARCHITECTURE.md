@@ -94,7 +94,7 @@ Key functions:
 - **`moveEmail(emailId, newCategoryId)`** — optimistic UI update (immediately moves the email in state), then calls `PATCH /api/emails/{id}/category`. Rolls back on failure. Shows a toast confirming feedback was received.
 - **`updateCategories(cats, reclassify?)`** — saves categories via `PUT /api/categories`. If `reclassify` is true, follows up with `POST /api/emails/reclassify` and updates email state from the response.
 - **`resetCategories()`** — resets categories via `POST /api/categories/reset`, then calls `POST /api/emails/reclassify` to reclassify all emails.
-- **`reclassifyEmails()`** — calls `POST /api/emails/reclassify` directly, updates email state from the synchronous response. Used by the standalone Recategorize button.
+- **`reclassifyEmails()`** — calls `POST /api/emails/reclassify` directly, updates email state from the synchronous response. Used by the standalone Recategorize button, and called internally by `updateCategories` (with reclassify) and `resetCategories`. Notes are always adapted to the current category set during reclassification.
 
 ## Components
 
@@ -155,7 +155,7 @@ Endpoints:
 | `getDemoToken()` | POST | Gets a JWT for the demo user |
 | `getMe()` | GET | Current user info |
 | `getEmails()` | GET | Fetch and classify emails |
-| `reclassifyEmails()` | POST | Reclassify all emails, returns `EmailsResponse` |
+| `reclassifyEmails()` | POST | Reclassify all emails (adapts notes if needed), returns `EmailsResponse` |
 | `updateEmailCategory()` | PATCH | Move a single email to a new category |
 | `getCategories()` | GET | List categories |
 | `updateCategories()` | PUT | Bulk update categories |
@@ -182,11 +182,11 @@ Endpoints:
    - Backend updates DB and kicks off background AI feedback learning
    - Toast confirms feedback was received
 6. User opens "Manage Categories" → edits categories/notes → saves:
-   - **Save:** categories and notes are saved via separate API calls, no reclassification
-   - **Save & Recategorize:** saves, then calls `POST /api/emails/reclassify` which returns the reclassified emails synchronously
+   - **Save:** categories and notes are saved via separate API calls, modal closes immediately, no reclassification
+   - **Save & Recategorize:** modal closes immediately, saves notes then categories, then calls `POST /api/emails/reclassify` — notes are adapted to the current categories and all emails are reclassified
 7. User clicks "Recategorize" button in the header:
    - Calls `POST /api/emails/reclassify` directly
-   - Reclassified emails are returned in the response and the UI updates immediately
+   - Notes are adapted if needed, emails are reclassified, and the UI updates immediately
 
 ## Types (`types/index.ts`)
 
