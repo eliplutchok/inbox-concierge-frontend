@@ -13,9 +13,12 @@ A React SPA that connects to a user's Gmail account and displays their email thr
 - **Google OAuth login** — one-click sign in, token stored in `localStorage`
 - **Demo account** — "Try Demo Account" button for instant access without Google OAuth
 - **AI-classified inbox** — emails sorted into user-defined categories (defaults provided)
-- **Category management** — create, edit, delete categories via modal; triggers full reclassification
+- **Category management** — create, edit, delete categories via modal with "Save" and "Save & Recategorize" options
 - **Reclassify feedback** — drag-and-drop or reclassify button to correct classifications; each correction teaches the AI
+- **Standalone recategorize** — header button to re-run AI classification on all emails at any time
 - **AI preference notes** — viewable/editable in the category modal; auto-generated from user corrections
+- **Dirty-state tracking** — Save buttons are disabled when nothing has changed
+- **Search** — filter emails by subject or sender
 - **Responsive design** — collapsible sidebar drawer on mobile, adapted email layout, touch-friendly interactions
 - **Persistent state** — active category tab saved to `localStorage`
 
@@ -33,8 +36,9 @@ src/
 │   └── EmailContext.tsx       # Emails, categories, active tab, sidebar state
 └── components/
     ├── Auth/LoginButton.tsx   # Google sign-in button (unauthenticated view)
-    ├── Layout/Layout.tsx      # Header + body shell, hamburger menu, overlay
+    ├── Layout/Layout.tsx      # Header + body shell, hamburger menu, recategorize button, overlay
     ├── Loader/Loader.tsx      # Bouncing dots loading animation
+    ├── Toast/Toast.tsx        # Toast notification for feedback confirmations
     ├── Sidebar/
     │   ├── Sidebar.tsx        # Category tabs list + "Manage Categories" button
     │   └── CategoryTab.tsx    # Individual tab (drop target for drag-and-drop)
@@ -42,7 +46,7 @@ src/
     │   ├── EmailList.tsx      # Filtered email list + tip banner
     │   └── EmailItem.tsx      # Single email row (draggable, reclassify menu, "New" badge)
     └── CategoryModal/
-        └── CategoryModal.tsx  # Modal for editing categories + AI notes
+        └── CategoryModal.tsx  # Modal for editing categories + AI notes, with Save / Save & Recategorize
 ```
 
 ## Provider Tree
@@ -63,7 +67,7 @@ Manages the authentication lifecycle:
 
 - On mount, checks for a `?token=` URL param (redirect from OAuth callback) or an existing token in `localStorage`
 - Validates the token by calling `GET /api/auth/me`
-- Exposes `user`, `loading`, `login()`, `logout()`
+- Exposes `user`, `loading`, `login()`, `loginDemo()`, `logout()`
 - `login()` redirects to the backend's OAuth endpoint
 - `loginDemo()` calls the demo endpoint, stores the JWT, and fetches user info — no redirect needed
 - `logout()` clears token from memory and storage
@@ -76,7 +80,9 @@ Central state for all email and category data:
 |---|---|---|
 | `emails` | `EmailThread[]` | All fetched email threads |
 | `categories` | `Category[]` | User's categories |
-| `activeCategory` | `string \| null` | Selected tab (`null` = "All"), persisted to `localStorage` |
+| `activeCategory` | `string` | Selected tab (`"all"` = All), persisted to `localStorage` |
+| `searchQuery` | `string` | Search filter for email subject/sender |
+| `toast` | `string \| null` | Toast notification message |
 | `loading` | `boolean` | Loading state for data fetches |
 | `error` | `string \| null` | Error message display |
 | `sidebarOpen` | `boolean` | Mobile sidebar drawer state |
@@ -84,9 +90,11 @@ Central state for all email and category data:
 Key functions:
 
 - **`fetchEmails()`** — calls `GET /api/emails`, which fetches from Gmail and classifies unclassified threads server-side
-- **`fetchCategories()`** — loads categories, preserves active tab if it still exists, defaults to "All" otherwise
-- **`moveEmail(emailId, newCategoryId)`** — optimistic UI update (immediately moves the email in state), then calls `PATCH /api/emails/{id}/category`. Rolls back on failure.
-- **`updateCategories(cats)`** / **`resetCategories()`** — updates/resets categories, then polls for reclassified emails after a 3-second delay (background reclassification runs server-side)
+- **`fetchCategories()`** — loads categories, preserves active tab if it still exists, defaults to first category otherwise
+- **`moveEmail(emailId, newCategoryId)`** — optimistic UI update (immediately moves the email in state), then calls `PATCH /api/emails/{id}/category`. Rolls back on failure. Shows a toast confirming feedback was received.
+- **`updateCategories(cats, reclassify?)`** — saves categories via `PUT /api/categories`. If `reclassify` is true, follows up with `POST /api/emails/reclassify` and updates email state from the response.
+- **`resetCategories()`** — resets categories via `POST /api/categories/reset`, then calls `POST /api/emails/reclassify` to reclassify all emails.
+- **`reclassifyEmails()`** — calls `POST /api/emails/reclassify` directly, updates email state from the synchronous response. Used by the standalone Recategorize button.
 
 ## Components
 
@@ -96,7 +104,7 @@ Acts as a gate: shows `Loader` while auth loads, `LoginButton` if unauthenticate
 
 ### Layout
 
-Renders the header (logo, hamburger menu on mobile, user email, sign out) and the body container. Manages the mobile overlay backdrop that closes the sidebar on tap.
+Renders the header (logo, hamburger menu on mobile, search bar, recategorize button, user email, sign out) and the body container. The **Recategorize** button triggers `reclassifyEmails()` and is disabled while loading. It includes a tooltip explaining its function. On mobile, only the icon shows (text is hidden). Manages the mobile overlay backdrop that closes the sidebar on tap.
 
 ### Sidebar
 
@@ -104,7 +112,7 @@ Renders an "All" tab (shows total email count) followed by category tabs with pe
 
 ### EmailList
 
-Filters emails by `activeCategory` (or shows all if `null`). Renders a dismissible tip banner (persisted via `localStorage`) that explains drag-and-drop and AI learning. Shows `Loader` during loading, error banner on failure, or "No emails" for empty categories.
+Filters emails by `activeCategory` and `searchQuery`. Renders a dismissible tip banner (persisted via `localStorage`) that explains drag-and-drop and AI learning. Shows `Loader` during loading, error banner on failure, or "No emails" for empty categories.
 
 ### EmailItem
 
@@ -120,7 +128,17 @@ Each row is `useDraggable` for drag-and-drop. Features:
 
 ### CategoryModal
 
-Modal for managing categories and viewing/editing AI preference notes. Categories are initialized from context into local state (no `useEffect` — uses `useState` initializer since the modal always mounts fresh). Notes are fetched from `GET /api/categories/notes` on mount. Both are saved together when the user clicks Save.
+Modal for managing categories and viewing/editing AI preference notes. Categories are initialized from context into local state (no `useEffect` — uses `useState` initializer since the modal always mounts fresh). Notes are fetched from `GET /api/categories/notes` on mount.
+
+**Dirty-state tracking:** The modal compares current items and notes against their initial values. Both save buttons are disabled when nothing has changed.
+
+**Two save actions:**
+- **Save** — saves categories and notes without reclassifying. For quick edits where you don't need to re-sort.
+- **Save & Recategorize** — saves categories and notes, then triggers full reclassification. The response includes the reclassified emails, so the UI updates immediately when complete.
+
+### Toast
+
+Transient notification bar that appears after user actions (e.g., reclassifying an email). Auto-dismisses after 4 seconds with a manual dismiss option.
 
 ## API Client (`services/api.ts`)
 
@@ -129,7 +147,21 @@ A thin wrapper around `fetch`:
 - `request<T>(path, options)` — adds auth header, content-type, handles errors
 - `setAuthToken(token)` — called by `AuthContext` to set/clear the bearer token
 
-All endpoints are exported as `api.methodName()` with typed return values.
+Endpoints:
+
+| Method | Function | Description |
+|---|---|---|
+| `getLoginUrl()` | — | Returns the OAuth login URL |
+| `getDemoToken()` | POST | Gets a JWT for the demo user |
+| `getMe()` | GET | Current user info |
+| `getEmails()` | GET | Fetch and classify emails |
+| `reclassifyEmails()` | POST | Reclassify all emails, returns `EmailsResponse` |
+| `updateEmailCategory()` | PATCH | Move a single email to a new category |
+| `getCategories()` | GET | List categories |
+| `updateCategories()` | PUT | Bulk update categories |
+| `resetCategories()` | POST | Reset to defaults |
+| `getNotes()` | GET | Get AI preference notes |
+| `updateNotes()` | PUT | Update preference notes |
 
 ## Styling
 
@@ -148,10 +180,13 @@ All endpoints are exported as `api.methodName()` with typed return values.
    - Frontend optimistically updates the email's category
    - Calls `PATCH /api/emails/{id}/category`
    - Backend updates DB and kicks off background AI feedback learning
+   - Toast confirms feedback was received
 6. User opens "Manage Categories" → edits categories/notes → saves:
-   - Categories and notes are saved via separate API calls
-   - Backend triggers background reclassification of all emails
-   - Frontend polls for updated emails after a 3-second delay
+   - **Save:** categories and notes are saved via separate API calls, no reclassification
+   - **Save & Recategorize:** saves, then calls `POST /api/emails/reclassify` which returns the reclassified emails synchronously
+7. User clicks "Recategorize" button in the header:
+   - Calls `POST /api/emails/reclassify` directly
+   - Reclassified emails are returned in the response and the UI updates immediately
 
 ## Types (`types/index.ts`)
 
@@ -161,6 +196,6 @@ Category      { id, name, description }
 EmailThread   { id, gmail_thread_id, subject, sender, snippet, date,
                 gmail_link, category_id, category_name, is_user_corrected,
                 classified_at }
-EmailsResponse { emails }
+EmailsResponse { emails, classified_count, total_count }
 CategoryUpdate { id?, name, description }  // id present = existing, absent = new
 ```

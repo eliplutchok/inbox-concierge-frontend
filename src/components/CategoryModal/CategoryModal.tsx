@@ -68,7 +68,7 @@ export default function CategoryModal({ onClose }: CategoryModalProps) {
     setNewDesc("");
   }, [newName, newDesc]);
 
-  const handleSave = useCallback(async (reclassify: boolean) => {
+  const handleSave = useCallback((reclassify: boolean) => {
     const valid = items.filter((i) => i.name.trim());
     if (valid.length === 0) return;
     const mapped: CategoryUpdate[] = valid.map((i) => ({
@@ -78,15 +78,13 @@ export default function CategoryModal({ onClose }: CategoryModalProps) {
     }));
 
     const trimmedNotes = notes.trim() || null;
-    await api.updateNotes(trimmedNotes);
-
-    const success = await updateCategories(mapped, reclassify);
-    if (success) onClose();
+    onClose();
+    api.updateNotes(trimmedNotes).then(() => updateCategories(mapped, reclassify));
   }, [items, notes, updateCategories, onClose]);
 
-  const handleReset = useCallback(async () => {
-    const success = await resetCategories();
-    if (success) onClose();
+  const handleReset = useCallback(() => {
+    onClose();
+    resetCategories();
   }, [resetCategories, onClose]);
 
   const handleBackdropClick = useCallback(
