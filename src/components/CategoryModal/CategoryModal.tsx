@@ -39,17 +39,13 @@ export default function CategoryModal({ onClose }: CategoryModalProps) {
   }, []);
 
   const hasChanges = useMemo(() => {
+    if (notes !== initialNotesRef.current) return true;
     const initial = initialItemsRef.current;
     if (items.length !== initial.length) return true;
-    for (let i = 0; i < items.length; i++) {
-      if (
-        items[i].id !== initial[i].id ||
-        items[i].name !== initial[i].name ||
-        items[i].description !== initial[i].description
-      )
-        return true;
+    const initialIds = new Set(initial.map((i) => i.id));
+    for (const item of items) {
+      if (item.id === null || !initialIds.has(item.id)) return true;
     }
-    if (notes !== initialNotesRef.current) return true;
     return false;
   }, [items, notes]);
 
@@ -101,30 +97,39 @@ export default function CategoryModal({ onClose }: CategoryModalProps) {
         <div className={styles.body}>
           {items.map((item, i) => (
             <div key={item.id || `new-${i}`} className={styles.categoryRow}>
-              <input
-                className={styles.nameInput}
-                value={item.name}
-                onChange={(e) =>
-                  setItems((prev) =>
-                    prev.map((it, idx) =>
-                      idx === i ? { ...it, name: e.target.value } : it
-                    )
-                  )
-                }
-                placeholder="Category name"
-              />
-              <input
-                className={styles.descInput}
-                value={item.description}
-                onChange={(e) =>
-                  setItems((prev) =>
-                    prev.map((it, idx) =>
-                      idx === i ? { ...it, description: e.target.value } : it
-                    )
-                  )
-                }
-                placeholder="Description (optional)"
-              />
+              {item.id ? (
+                <>
+                  <span className={styles.categoryName}>{item.name}</span>
+                  <span className={styles.categoryDesc}>{item.description || "No description"}</span>
+                </>
+              ) : (
+                <>
+                  <input
+                    className={styles.nameInput}
+                    value={item.name}
+                    onChange={(e) =>
+                      setItems((prev) =>
+                        prev.map((it, idx) =>
+                          idx === i ? { ...it, name: e.target.value } : it
+                        )
+                      )
+                    }
+                    placeholder="Category name"
+                  />
+                  <input
+                    className={styles.descInput}
+                    value={item.description}
+                    onChange={(e) =>
+                      setItems((prev) =>
+                        prev.map((it, idx) =>
+                          idx === i ? { ...it, description: e.target.value } : it
+                        )
+                      )
+                    }
+                    placeholder="Description (optional)"
+                  />
+                </>
+              )}
               <button
                 className={styles.deleteBtn}
                 onClick={() => handleDelete(i)}
