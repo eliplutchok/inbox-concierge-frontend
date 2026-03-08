@@ -11,6 +11,7 @@ A React SPA that connects to a user's Gmail account and displays their email thr
 ## Core Features
 
 - **Google OAuth login** — one-click sign in, token stored in `localStorage`
+- **Demo account** — "Try Demo Account" button for instant access without Google OAuth
 - **AI-classified inbox** — emails sorted into user-defined categories (defaults provided)
 - **Category management** — create, edit, delete categories via modal; triggers full reclassification
 - **Reclassify feedback** — drag-and-drop or reclassify button to correct classifications; each correction teaches the AI
@@ -64,6 +65,7 @@ Manages the authentication lifecycle:
 - Validates the token by calling `GET /api/auth/me`
 - Exposes `user`, `loading`, `login()`, `logout()`
 - `login()` redirects to the backend's OAuth endpoint
+- `loginDemo()` calls the demo endpoint, stores the JWT, and fetches user info — no redirect needed
 - `logout()` clears token from memory and storage
 
 ### EmailContext
@@ -90,7 +92,7 @@ Key functions:
 
 ### App
 
-Acts as a gate: shows `Loader` while auth loads, `LoginButton` if unauthenticated, or `InboxView` if authenticated. `InboxView` wires up `DragDropProvider` from `@dnd-kit/react` and handles the `onDragEnd` callback to trigger `moveEmail`.
+Acts as a gate: shows `Loader` while auth loads, `LoginButton` if unauthenticated, or `InboxView` if authenticated. The login page includes both a Google sign-in button and a "Try Demo Account" button. `InboxView` wires up `DragDropProvider` from `@dnd-kit/react` and handles the `onDragEnd` callback to trigger `moveEmail`.
 
 ### Layout
 

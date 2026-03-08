@@ -39,3 +39,41 @@
   background: var(--hover);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 200px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.demoButton {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 1000px;
+  padding: 10px 24px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.demoButton:hover {
+  background: var(--hover);
+  color: var(--text-primary);
+}
+
+.demoButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

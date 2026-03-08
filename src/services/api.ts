@@ -34,6 +34,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 export const api = {
   getLoginUrl: () => `${API_URL}/api/auth/login`,
 
+  getDemoToken: () => request<{ token: string }>("/api/auth/demo"),
+
   getMe: () => request<User>("/api/auth/me"),
 
   getEmails: () => request<EmailsResponse>("/api/emails"),

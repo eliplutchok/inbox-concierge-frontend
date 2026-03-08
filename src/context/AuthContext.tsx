@@ -13,6 +13,7 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   login: () => void;
+  loginDemo: () => Promise<void>;
   logout: () => void;
 }
 
@@ -52,6 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.location.href = api.getLoginUrl();
   }, []);
 
+  const loginDemo = useCallback(async () => {
+    const { token } = await api.getDemoToken();
+    localStorage.setItem("token", token);
+    setAuthToken(token);
+    const me = await api.getMe();
+    setUser(me);
+  }, []);
+
   const logout = useCallback(() => {
     setUser(null);
     setAuthToken(null);
@@ -59,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginDemo, logout }}>
       {children}
     </AuthContext.Provider>
   );
