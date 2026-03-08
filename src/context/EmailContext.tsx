@@ -13,14 +13,14 @@ import type { CategoryUpdate, EmailThread, Category } from "../types";
 interface EmailContextValue {
   emails: EmailThread[];
   categories: Category[];
-  activeCategory: string | null;
+  activeCategory: string;
   searchQuery: string;
   toast: string | null;
   loading: boolean;
   error: string | null;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
-  setActiveCategory: (id: string | null) => void;
+  setActiveCategory: (id: string) => void;
   setSearchQuery: (query: string) => void;
   dismissToast: () => void;
   clearError: () => void;
@@ -38,11 +38,9 @@ const ACTIVE_CAT_KEY = "inbox-concierge-active-category";
 export function EmailProvider({ children }: { children: ReactNode }) {
   const [emails, setEmails] = useState<EmailThread[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string | null>(() => {
-    const stored = localStorage.getItem(ACTIVE_CAT_KEY);
-    if (stored === "all") return null;
-    return stored;
-  });
+  const [activeCategory, setActiveCategory] = useState<string>(
+    () => localStorage.getItem(ACTIVE_CAT_KEY) ?? ""
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -50,10 +48,8 @@ export function EmailProvider({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const isFirstLoad = useRef(!localStorage.getItem(ACTIVE_CAT_KEY));
-
   useEffect(() => {
-    localStorage.setItem(ACTIVE_CAT_KEY, activeCategory ?? "all");
+    if (activeCategory) localStorage.setItem(ACTIVE_CAT_KEY, activeCategory);
   }, [activeCategory]);
 
   const showToast = useCallback((message: string) => {
@@ -71,10 +67,9 @@ export function EmailProvider({ children }: { children: ReactNode }) {
 
   const syncActiveCategory = useCallback((newCats: Category[]) => {
     setActiveCategory((prev) => {
-      if (prev !== null && newCats.some((c) => c.id === prev)) return prev;
-      if (prev === null && !isFirstLoad.current) return null;
-      isFirstLoad.current = false;
-      return newCats[0]?.id ?? null;
+      if (prev === "all") return "all";
+      if (prev && newCats.some((c) => c.id === prev)) return prev;
+      return newCats[0]?.id ?? "all";
     });
   }, []);
 

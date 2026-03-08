@@ -27,7 +27,7 @@
   gap: 10px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 1000px;
   padding: 10px 24px;
   font-size: 15px;
   font-weight: 500;

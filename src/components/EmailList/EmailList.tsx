@@ -23,7 +23,7 @@ export default function EmailList() {
   const { emails, activeCategory, searchQuery, loading, error, clearError } = useEmails();
   const tip = useTipBanner();
 
-  const showAll = activeCategory === null;
+  const showAll = activeCategory === "all";
 
   const filteredEmails = useMemo(() => {
     let result = showAll ? emails : emails.filter((e) => e.category_id === activeCategory);
